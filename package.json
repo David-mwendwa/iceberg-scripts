@@ -1,0 +1,31 @@
+{
+  "name": "vlex-iceberg",
+  "version": "0.0.1",
+  "dependencies": {
+    "axios": "latest",
+    "chalk": "latest",
+    "cheerio": "latest",
+    "colors": "latest",
+    "csv": "latest",
+    "csv-writer": "latest",
+    "dom-parser": "^0.1.6",
+    "fetch-cookie": "latest",
+    "form-data": "latest",
+    "he": "latest",
+    "iconv-lite": "latest",
+    "mkdirp": "latest",
+    "moment": "latest",
+    "node-fetch": "latest",
+    "parse5": "^6.0.1",
+    "puppeteer": "latest",
+    "querystring": "latest",
+    "request": "latest",
+    "request-promise": "latest",
+    "sanitize-html": "latest",
+    "url": "latest",
+    "winston": "latest",
+    "xmldom": "^0.6.0",
+    "xmlserializer": "^0.6.1",
+    "xpath": "0.0.32"
+  }
+}
