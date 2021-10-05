@@ -39,9 +39,3 @@ exports.newPage = async () => {
     // await page.authenticate({username: "lum-customer-vlex-zone-g1-country-us", password: "003c65247594"});
     return page;
 };
-
-exports.getBrowser = async () => {
-    if (!browser)
-        return await init();
-    return browser;
-}

@@ -11,7 +11,7 @@ function parsePage({URL, responseBody, html}) {
         return [];
     }
     const document = {
-        URI: [URL, decodeURI(URL), encodeURI(decodeURI(URL))].filter((c, i, a) => a.indexOf(c) === i)
+        URI: URL
     };
     let locale = "es";
     document.originalDoc = [{

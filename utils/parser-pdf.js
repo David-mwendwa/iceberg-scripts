@@ -27,7 +27,7 @@ async function parsePage({URL, responseBody, html}) {
         out.text = null;
     }
     let text = await runRemoteFilter({URL, filter: "pdftotext"});
-    out.text = text && text.trim() && {content: text, locale, fileFormat: "text/plain"} || null;
+    out.text = text && {content: text, locale, fileFormat: "text/plain"} || null;
 
     return [out];
 }
@@ -52,13 +52,7 @@ const runRemoteFilter = async function ({URL, id, filter}) {
 
     let node = resp.nodes.filter(n => n)[0];
 
-    if (node
-        && node.lastSuccessfulRequest
-        && node.lastSuccessfulRequest.outputForFilter
-        && node.lastSuccessfulRequest.outputForFilter.length
-        && node.lastSuccessfulRequest.outputForFilter[0]
-        && node.lastSuccessfulRequest.outputForFilter[0].filterOutput
-        && node.lastSuccessfulRequest.outputForFilter[0].filterOutput.content) {
+    if (node && node.lastSuccessfulRequest && node.lastSuccessfulRequest.outputForFilter[0].filterOutput.content) {
         let _text = node.lastSuccessfulRequest.outputForFilter[0].filterOutput.content;
         textContent += _text;
     } else {

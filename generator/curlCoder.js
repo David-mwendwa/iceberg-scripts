@@ -169,7 +169,7 @@ const curlContentParser = function ({curlString, requestIndex, functionPrefix = 
 
 const generateCode = function () {
 
-    let FILE = __dirname + "/./pdf/dp21223.txt"; //set this to target file, with curl requests each on a new line
+    let FILE = __dirname + "/./pdf/dpcurrent.txt"; //set this to target file, with curl requests each on a new line
     let overwriteFetchFileIfFound = false;
     overwriteFetchFileIfFound = true;//create and overwrite existing /http/fetch.js file in the project directory
 
@@ -178,7 +178,7 @@ const generateCode = function () {
         console.error("Nothing useful found in target file");
         return;
     }
-    contents = contents.toString().replace(/\s*\\\s*\n\s*/ig, " ").split(/\n/g).filter(ln => ln.trim());
+    contents = contents.toString().split(/\n/g).filter(ln => ln.trim());
     let generatedCode = `"use strict";\n\nconst querystring = require("querystring");\n`
         + `const FormData = require("form-data");\n`
         + `const moment = require('moment');\n`

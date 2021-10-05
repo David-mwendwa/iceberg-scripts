@@ -16,16 +16,12 @@
     "mkdirp": "latest",
     "moment": "latest",
     "node-fetch": "latest",
-    "parse5": "^6.0.1",
     "puppeteer": "latest",
     "querystring": "latest",
     "request": "latest",
     "request-promise": "latest",
     "sanitize-html": "latest",
     "url": "latest",
-    "winston": "latest",
-    "xmldom": "^0.6.0",
-    "xmlserializer": "^0.6.1",
-    "xpath": "0.0.32"
+    "winston": "latest"
   }
 }

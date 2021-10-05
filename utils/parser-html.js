@@ -3,12 +3,10 @@
 const moment = require("moment");
 const cheerio = require("cheerio");
 
-const sanitizeHtml = (x) => x;
-
 
 function parsePage({URL, responseBody, html, responseURL}) {
     const doc = {
-        URI: [URL, decodeURI(URL), encodeURI(decodeURI(URL))].filter((c, i, a) => a.indexOf(c) === i)
+        URI: URL
     };
     let locale = "es";
     html = responseBody.content;
@@ -17,9 +15,11 @@ function parsePage({URL, responseBody, html, responseURL}) {
         $("script, meta, base, iframe, frame").remove();
         $("a[href]").each(function (i) {
             let a = $(this);
-            a.replaceWith(a.html());
+            a.attr('href', 'Javascript:void(0)');
+            a.attr('onclick', 'Javascript:void(0)');
+            a.attr('style', (a.attr('style') || "") + "color=black;");
         });
-        doc.htmlContent = {fileFormat: "text/html", content: sanitizeHtml($.html()), locale};
+        doc.htmlContent = {fileFormat: "text/html", content: $.html(), locale};
     }
     return [doc];
 }

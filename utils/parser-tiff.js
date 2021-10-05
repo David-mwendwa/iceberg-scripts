@@ -11,8 +11,8 @@ contentURL
   `;
 
   const out = {
-      URI: [URL, decodeURI(URL), encodeURI(decodeURI(URL))].filter((c, i, a) => a.indexOf(c) === i)
-
+        URI: URL,
+  
     };
     if (filterOutputs && filterOutputs.tiff2pdf) {
       out.pdf = [{
@@ -20,7 +20,7 @@ contentURL
           dataType: "MEDIA",
           locale: "es"
       }];
-
+      
       // Transcode PDF to HTML
       // out.debugMutation = mutationQuery.replace(/MEDIA_OBJECT_ID_GOES_HERE/, filterOutputs.tiff2pdf.id);
       let resp = await graphql(mutationQuery.replace(/MEDIA_OBJECT_ID_GOES_HERE/, filterOutputs.tiff2pdf.id));
@@ -40,7 +40,7 @@ contentURL
                 mediaObjectId: responseBody.id,
                 fileFormat: "application/pdf",
                 locale: "es"
-            }];*/
+            }];*/ 
             out.html = [{
               mediaObjectId: resp.transcodeMediaObject.mediaObject.id,
               dataType: "MEDIA",
@@ -51,10 +51,10 @@ contentURL
               dataType: "MEDIA",
               locale: "es"
           }];
-        }
+        }  	
     }
-
-
-
-	return [out];
+  
+  
+  
+	return [out]; 
 }
