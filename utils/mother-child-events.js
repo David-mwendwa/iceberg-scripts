@@ -1,5 +1,5 @@
 let events = []
-$('.field-name-field-instrumentos-adjunto .field-items').find('a[href*="pdf"], a[href*="doc"], a[href*="docx"]').each(function() {
+$('a[href*="pdf"], a[href*="doc"], a[href*="docx"]').each(function() {
     let event = $(this).parent().html()
     events.push(event)
 })
