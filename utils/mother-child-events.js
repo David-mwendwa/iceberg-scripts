@@ -18,3 +18,5 @@ for (let i = 0; i < events.length; i++) {
     //push to return array, 'results'
     results.push({URI: href, parentURL: URL, title, sortValue, inverseSortValue, Class})
 }
+
+
