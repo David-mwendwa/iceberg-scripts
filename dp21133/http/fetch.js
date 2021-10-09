@@ -19,7 +19,6 @@ function setSharedVariable(key, value) { map[key] = value; }
 
 function getSharedVariable(key) {return map[key];}
 
-
 async function fetchPage({canonicalURL, requestURL, requestOptions, headers}) {
     if (!requestOptions) requestOptions = {method: "GET", headers};
     if (!canonicalURL) canonicalURL = requestURL;
@@ -96,6 +95,57 @@ const getListing = async function ({numero, page, canonicalURL, headers}) {
         return responsePage;
     };
 
+// Fetch documents from 2004 to 2015
+const getUntil2015Home = async function ({item, canonicalURL, headers}) {
+        let customHeaders = {
+		    "Cache-Control": "max-age=0",
+		    "sec-ch-ua": "\"Chromium\";v=\"94\", \"Google Chrome\";v=\"94\", \";Not A Brand\";v=\"99\"",
+		    "sec-ch-ua-mobile": "?0",
+		    "sec-ch-ua-platform": "\"Windows\"",
+		    "Upgrade-Insecure-Requests": "1",
+		    "Sec-Fetch-Site": "same-origin",
+		    "Sec-Fetch-Mode": "navigate",
+		    "Sec-Fetch-User": "?1",
+		    "Sec-Fetch-Dest": "document",
+		    "Referer": "https://www.corantioquia.gov.co/Paginas/VerContenido.aspx?List=MenuInferior&item=107",
+		    "Accept-Encoding": "gzip, deflate, br"
+		};
+        let _headers = Object.assign(customHeaders, headers);        
+        let method = "GET";
+        let requestOptions = {method, headers: _headers};
+        let requestURL = `https://www.corantioquia.gov.co/Paginas/VerContenido.aspx?List=MenuInferior&item=${item}`;
+        let responsePage = await fetchPage({canonicalURL, requestURL, requestOptions});
+  		//throw(canonicalURL)
+        return responsePage;
+    };
+
+
+const getUntil2015Documents = async function ({item, canonicalURL, headers}) {
+  		await getUntil2015Home({item, canonicalURL})
+        let customHeaders = {
+		    "sec-ch-ua": "\"Chromium\";v=\"94\", \"Google Chrome\";v=\"94\", \";Not A Brand\";v=\"99\"",
+		    "X-Requested-With": "XMLHttpRequest",
+		    "sec-ch-ua-mobile": "?0",
+		    "sec-ch-ua-platform": "\"Windows\"",
+		    "Origin": "https://www.corantioquia.gov.co",
+		    "Sec-Fetch-Site": "same-origin",
+		    "Sec-Fetch-Mode": "cors",
+		    "Sec-Fetch-Dest": "empty",
+		    "Referer": "https://www.corantioquia.gov.co/Paginas/VerContenido.aspx?List=MenuInferior&item=356",
+		    "Accept-Encoding": "gzip, deflate, br"
+		};
+        let _headers = Object.assign(customHeaders, headers);
+        const data = {};
+		let body = querystring.stringify(data);
+        let method = "POST";
+        let requestOptions = {method, body, headers: _headers};
+        let requestURL = 'https://www.corantioquia.gov.co/_vti_bin/Lists.asmx';
+        let responsePage = await fetchPage({canonicalURL, requestURL, requestOptions});
+  		//throw(item)
+        return responsePage;
+    };
+
+
 async function fetchURL({canonicalURL, headers}) {
     if (/https?:.*https?:/i.test(canonicalURL)) {
         console.error("Rejecting URL", canonicalURL, `returning [];`);
@@ -103,6 +153,7 @@ async function fetchURL({canonicalURL, headers}) {
     }
     const match = canonicalURL.match(/\?year=(\d+)$/i);
   	const isPagination = canonicalURL.match(/\?ctrlAction=C&numero=(\d+)&pagina=(\d+)$/i);
+  	const isUpto2015 = canonicalURL.match(/&item=(\d+)$/i)
     if (match) {
         let year = parseInt(match[1]);
         return [await getDocumentsByYear({year, canonicalURL, headers})]
@@ -112,6 +163,10 @@ async function fetchURL({canonicalURL, headers}) {
       	let page = isPagination[2]
         return [await getListing({numero, page, canonicalURL, headers})];
       
+    } else if (isUpto2015) {
+      	let item = isUpto2015[1]
+      	return [await getUntil2015Documents({item, canonicalURL, headers})];
+               
     } else {
         return defaultFetchURL({canonicalURL, headers});
     }
