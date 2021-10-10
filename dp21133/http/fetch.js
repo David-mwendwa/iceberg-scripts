@@ -86,13 +86,12 @@ const getListing = async function ({numero, page, canonicalURL, headers}) {
 		    "Referer": "https://sirena.corantioquia.gov.co/esirena/CtrlPublicaciones",
 		    "Accept-Encoding": "gzip, deflate, br"
 		};
-        let _headers = Object.assign(customHeaders, headers);
-        
-        let method = "GET";
-        let requestOptions = {method, headers: _headers};
-        let requestURL = `https://sirena.corantioquia.gov.co/esirena/CtrlPublicaciones?ctrlAction=C&numero=${numero}&pagina=${page}`;
-        let responsePage = await fetchPage({canonicalURL, requestURL, requestOptions});
-        return responsePage;
+        // let _headers = Object.assign(customHeaders, headers);        
+        // let method = "GET";
+        // let requestOptions = {method, headers: _headers};
+        // let requestURL = `https://sirena.corantioquia.gov.co/esirena/CtrlPublicaciones?ctrlAction=C&numero=${numero}&pagina=${page}`;
+        // let responsePage = await fetchPage({canonicalURL, requestURL, requestOptions});
+        // return responsePage;
     };
 
 // Fetch documents from 2004 to 2015
