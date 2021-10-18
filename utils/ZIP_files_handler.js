@@ -55,3 +55,16 @@ async function fetchURL({canonicalURL, headers}) {
         return out;
     }
 }
+
+
+// Parser for connecting the ZIP and its content
+async function parsePage({ responseBody, URL, html, referer }) {
+  const $ = cheerio.load(responseBody.content);
+  const results = [];
+  let URI = [URL];
+  $('a[href*="doc"], a[href*="docx"], a[href*="pdf"]').each(function () {
+    let docURL = $(this).attr('href');
+    results.push({ URI: docURL, parentURL: URL });
+  });
+  return results;
+}
