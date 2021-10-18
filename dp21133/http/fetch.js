@@ -61,6 +61,7 @@ const getLimits = async function ({year, canonicalURL, headers}) {
         return responsePage;
     };
 
+    
 // Deals with documents from 2014 - 2021
 const getDocumentsByYear = async function ({year, canonicalURL, headers}) {
   		let responsePage = await getLimits({year, canonicalURL, headers})
@@ -74,6 +75,7 @@ const getDocumentsByYear = async function ({year, canonicalURL, headers}) {
     	responsePage.response.headers.set('content-type', 'application/json');
         return responsePage;
     };
+
 
 const getListing = async function ({numero, page, canonicalURL, headers}) {
         let customHeaders = {
