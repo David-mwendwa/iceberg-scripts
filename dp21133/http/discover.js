@@ -21,13 +21,20 @@ function discoverLinks({content, contentType, canonicalURL, requestURL}) {
             })
         }
       	if (isPagination) {
-          	let year = parseInt(isPagination[1])
-          	let numero = parseInt(isPagination[2])
+            let year = parseInt(isPagination[1])
+            let numero = parseInt(isPagination[2])
             let page = parseInt(isPagination[3])
-        	let docs = json.boletines[year][numero].documentos
-            docs.forEach(item => {
+            let docs = 
+                json && 
+                json.boletines && 
+                json.boletines[year] && 
+                json.boletines[year][numero] && 
+                json.boletines[year][numero].documentos.length && 
+                json.boletines[year][numero].documentos
+            
+            docs && docs.forEach(item => {
             	let pdfURL = item.linkDescarga
-                links.push(pdfURL)
+                pdfURL && links.push(pdfURL)
             })
           	if(docs.length === limit) {
                 let page = /pagina=(\d+)$/.exec(canonicalURL)
