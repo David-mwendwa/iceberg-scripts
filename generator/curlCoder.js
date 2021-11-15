@@ -169,7 +169,7 @@ const curlContentParser = function ({curlString, requestIndex, functionPrefix = 
 
 const generateCode = function () {
 
-    let FILE = __dirname + "/./pdf/dp21189.txt"; //set this to target file, with curl requests each on a new line
+    let FILE = __dirname + "/./pdf/dp0432.txt"; //set this to target file, with curl requests each on a new line
     let overwriteFetchFileIfFound = false;
     overwriteFetchFileIfFound = true;//create and overwrite existing /http/fetch.js file in the project directory
 
