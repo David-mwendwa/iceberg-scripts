@@ -138,11 +138,14 @@ async function fetchURL({ canonicalURL, headers }) {
   if (match) {
     let year = parseInt(match[1]);
     return [await seachByYear({ year, canonicalURL, headers })];
+    
   } else if (isPagination) {
     let year = parseInt(isPagination[1]);
     let page = parseInt(isPagination[2]);
     return [await pagination({ year, page, canonicalURL, headers })];
+
   } else {
     return await fetchPage({ canonicalURL, headers });
   }
+
 }
