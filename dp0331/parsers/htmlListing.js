@@ -6,10 +6,7 @@ function parsePage({responseBody, URL}) {
     let tab2 = $('ul.et_pb_tabs_controls + div.et_pb_all_tabs > div:nth-child(2)');
     let tab3 = $('ul.et_pb_tabs_controls + div.et_pb_all_tabs > div:nth-child(3)');
     let tab4 = $('ul.et_pb_tabs_controls + div.et_pb_all_tabs > div:nth-child(4)');
-    [tab1, tab2, tab3, tab4].forEach(tab => {
-        let tabContent = getTabContent(tab)
-        tabContent.forEach(obj => results.push(obj))
-    })
+    [tab1, tab2, tab3, tab4].forEach(tab => getTabContent(tab).forEach(obj => results.push(obj)))
 
     function getTabContent(tab) {
         let tabContent = []
