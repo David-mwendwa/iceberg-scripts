@@ -1,5 +1,5 @@
 const sentenceCase = (input) => {
-  input = input === undefined ? null : input;
+  input = input === undefined ? null : input.trim().replace(/(^["']+|["']+$)/g, '')
   return (
     input && input.toString().toLowerCase().replace(/(^|[.?!] *)([a-z])/g,
         (match, separator, char) => separator + char.toUpperCase()
