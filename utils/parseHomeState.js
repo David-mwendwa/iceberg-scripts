@@ -1,4 +1,4 @@
-// parse theme token -> call @homepage
+// parse view dom id -> call @homepage
 const parseViewState = async function ({ responsePage }) {
     let html = await responsePage.response.text();
   	responsePage.response = new fetch.Response(html, responsePage.response);
@@ -10,7 +10,6 @@ const parseViewState = async function ({ responsePage }) {
     if (view_dom_id) setSharedVariable('view_dom_id', view_dom_id);
   	return view_dom_id
 };
-
 
 // parse theme token -> call @homepage
 const parseThemeToken = async function ({responsePage}) {
