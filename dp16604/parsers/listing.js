@@ -22,8 +22,8 @@ function parsePage({URL, responseBody, referer}) {
             href = href ? url.resolve(URL, href) : null;
             doc.URI.push(href);
             const program = tr.find('.programa').text().trim() || null
-            doc.programOriginal = program;
-          	doc.program = spaceCamelCased(program)
+            //doc.programOriginal = program;
+          	doc.program = removeDuplicates(spaceCamelCased(program))
             match = /((?:19|20)[0-3][0-9]+)/.exec(title)
             let yearTr = tr.find('.periodo').text().trim()
             doc.year =  moment(formatDate(fecha)).year() || match && match[1] || /^(19|20)\d{2}$/.test(yearTr) && yearTr || null
@@ -43,6 +43,17 @@ function spaceCamelCased(str) {
   str = str && str.replace(/\w+?([A-Z ]+)/g, (x, y) => x.replace(y, ` ${y}`)) || null;
   return str
 }
+
+function removeDuplicates(str) {
+  const arr = str && str.includes('-') && str.split('-').map((s) => s.trim());
+  if (arr && arr[0] && arr[1] && arr[1].includes(arr[0])) {
+    arr[1] = arr[1].replace(arr[0], '')
+    arr[0] = `${arr[0]} -`;
+    return arr.join(' ');
+  } else {
+    return str
+  }
+};
 
 const formatDate = (date) => {
   let d = date && moment(date.replace(/\sdel?/g, ''), ['DD MMMM YYYY', 'DD/MM/YYYY', 'DD-MM-YYYY'], 'es');
