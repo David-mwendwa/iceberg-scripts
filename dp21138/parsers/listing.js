@@ -1,4 +1,4 @@
-function parsePage({URL, responseBody, referer}) {
+async function parsePage({URL, responseBody, referer}) {
   	let $ = cheerio.load(responseBody.content)
     
     let results = []
@@ -10,12 +10,26 @@ function parsePage({URL, responseBody, referer}) {
     $('table.ms-rteTable-5 > tbody > tr').each(function () {
       const td = $(this)
       $(this).find('th').remove();
-
       const events = handleEvents(td)
       events && results.push(...events)
     });	   
-  	//throw(JSON.stringify({results}, null, 4))
-  	return results
+  	// make circular records unique
+    let final = await Promise.all(results.map(async record => {
+      let {title, URI, parentURI} = record 
+      if (/Circular/i.test(title)) {
+        let query = parentURI.split('?').pop()
+        let newURI = query && `${URI}?${query}` || URI
+        let output = await parseRemoteUrl(URI);
+  	  	let match = output && output.filter(obj => obj.URI[0] === URI)
+        match && match[0] && delete match[0].URI
+        let obj = match && match[0]
+        return Object.assign(record, obj, {URI: newURI, URL})
+      } else {
+      	return Object.assign(record, {URL})
+      }
+    }))
+    return final
+  	//throw(JSON.stringify({final}, null, 4))
 }
 
 const handleEvents = function (td) {
@@ -37,7 +51,8 @@ const handleEvents = function (td) {
   } else {
   	results = handleTdWithOneMother({$, parentURI, year})
   }
-  return results.filter(record => record.year >= 2022)
+  //throw(JSON.stringify({results}, null, 4))
+  return results && results.filter(record => record.year >= 2022)
 }
 
 const handleTdWithOneMother = function({$, parentURI, year}) {
@@ -124,8 +139,10 @@ const handleTdWithMoreThanOneMother = function({$, year}) {
         title = title.replace(/([“"”:]|\.$|^\.)/g, '').trim()
         results.push({ URI: parentURI, isMother: true, docname: title, title: summary || title, summary, year })
         results.push({ URI: href, parentURI, class: 'initial bill', docname: title, title, summary, year, sort: 1 })
-        results.push({ URI: commonEvent.URI, parentURI, class: null, docname: commonEvent.docname, title: commonEvent.docname, summary: commonEvent.summary, year: commonEvent.year, sort: circularOrder })
-        //results.push({...commonEvent, cirular: true, parentURI, order: circularOrder})
+        results.push({ 
+            URI: commonEvent.URI, parentURI, class: null, docname: commonEvent.docname, title: commonEvent.docname, 
+            summary: commonEvent.summary, year: commonEvent.year,sort: circularOrder 
+        })
       } else {
         results.push({ URI: href, parentURI, class: null, docname: title, title, summary, year, sort: circularOrder + 1 });  
       }
@@ -160,7 +177,11 @@ const handleTdWithMoreThanOneMother = function({$, year}) {
           	results.push(child)
         })
     })
-  	return results
+  	return handleCircularEvents(results)
+}
+
+function handleCircularEvents(results) {
+	return results
 }
 
 const formatDate = (date) => {
@@ -175,4 +196,36 @@ const sentenceCase = (input) => {
         (match, separator, char) => separator + char.toUpperCase()
       )
   );
+};
+
+const parseRemoteUrl = async (urlToParse, parserId = "A06qzm2u26zzzn1") => {
+    const urlToParseId = "H" + new Buffer(urlToParse).toString("base64");
+    const urlToParseId2 = "H" + sha256(urlToParse) + ".N";
+    const resp = await graphql(`
+          query {
+            nodes(ids: ["${urlToParseId}", "${urlToParseId2}"]) {
+              id
+              ... on CrawledURL {
+                lastSuccessfulRequest {
+                  id
+                }
+              }
+            }
+          }`);
+
+    let parserRes;
+    let node = resp.nodes && resp.nodes.filter(n => n)[0];
+    if (node && node.lastSuccessfulRequest) {
+        // Parse acordao listing page
+        parserRes = await graphql(`
+            query {
+              node(id:"${parserId}") {
+                ... on CrawledPageParser {
+                  jsonOutputFor(requestId:"${node.lastSuccessfulRequest.id}")
+                }
+              }
+            }`);
+    }
+
+    return parserRes && parserRes.node && parserRes.node.jsonOutputFor;//returns array, filter as necessary
 };
