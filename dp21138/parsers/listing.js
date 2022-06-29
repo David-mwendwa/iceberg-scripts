@@ -12,7 +12,8 @@ async function parsePage({URL, responseBody, referer}) {
       $(this).find('th').remove();
       const events = handleEvents(td)
       events && results.push(...events)
-    });	   
+    });	  
+  	//throw(JSON.stringify({results}, null, 4))
   	// make circular records unique
     let final = await Promise.all(results.map(async record => {
       let {title, URI, parentURI} = record 
@@ -29,7 +30,11 @@ async function parsePage({URL, responseBody, referer}) {
       }
     }))
     return final
-  	//throw(JSON.stringify({final}, null, 4))
+  	
+}
+
+const slugify = function(str) {
+	return str && str.toLowerCase().replace(/\s+/g, '_').replace(/[\.,\:]/g, '') || null
 }
 
 const handleEvents = function (td) {
@@ -40,22 +45,27 @@ const handleEvents = function (td) {
   if(!$('a[href]:contains("Proyecto "), a[href]:contains("proyecto ")').length) {
     return
   }
-  let circulartitle = $('a[href]:contains("Circular"), a[href]:contains("circular")').first().text() || null
+  let circulartitle = $('a[href]:contains("Circular"), a[href]:contains("circular")').parent().text() || null
   let yearMatch = /\b(\d{4})\b/i.exec(circulartitle);
   let year = yearMatch && parseInt(yearMatch[1])
-  let pt = $('a[href]:contains("Proyecto "), a[href]:contains("proyecto ")')
-  let ptitle = pt.first().text() || null
-  let parentURI = `https://www1.upme.gov.co/?title=${ptitle && ptitle.toLowerCase().replace(/\s+/g, '_')}`;
-  if (pt.length > 1) {
-  	results = handleTdWithMoreThanOneMother({$, parentURI, year})
+  let match = /[“"](.+)["”]/.exec(circulartitle)
+  let ctitle = match && match[1].trim()
+  //let pt = $('a:contains("Proyecto")')
+  let pt = $('a:contains("Proyecto normativo"), a:contains("Proyecto de Memoria"), a:contains("Proyecto de Resoluci"), a:contains("Proyecto de resoluci"), a:contains("Proyecto de lista")')
+  let ptitle = ctitle || pt.first().text() || null
+  let parentURI = `https://www1.upme.gov.co/?title=${slugify(ptitle) || slugify(circulartitle)}`;
+  if ($('a:contains("Proyecto de Memoria Justificativa")').length && $('a:contains("Proyecto de resolución a consulta ciudadana")').length) {
+    results = handleTdWithOneMother({$, parentURI, year, circulartitle, ctitle})
+  } else if (pt.length > 1) {
+  	results = handleTdWithMoreThanOneMother({$, parentURI, year, ctitle})
   } else {
-  	results = handleTdWithOneMother({$, parentURI, year})
+  	results = handleTdWithOneMother({$, parentURI, year, circulartitle, ctitle})
   }
   //throw(JSON.stringify({results}, null, 4))
   return results && results.filter(record => record.year >= 2022)
 }
 
-const handleTdWithOneMother = function({$, parentURI, year}) {
+const handleTdWithOneMother = function({$, parentURI, year, circulartitle, ctitle}) {
     let results = []
     const events = []
     $ && $('.doc .event:has(a)').each(function (index) {
@@ -66,19 +76,20 @@ const handleTdWithOneMother = function({$, parentURI, year}) {
       !/.xlsx/.test(href) && events.push({href, title, summary, year: year || null, parentURI: parentURI || null, order: index })
     })
     events.map(event => {
-      let mother = { URI: [], isMother: true };
-      let child = { URI: [] }
+      let mother = { URI: null, isMother: true };
+      let child = { URI: null }
       let { href, title, summary, year, parentURI, order } = event;
-      summary = summary.replace(/([“"”:]|\.$|^\.)/g, '').trim()
+      summary = summary.trim().replace(/([“"”:]|\.$|^\.)/g, '').trim()
       let totalEvents = events.length
-      if (/Proyecto/i.test(title)) {//Circular
-        mother.URI.push(parentURI)
+      if ((/Proyecto/.test(title) && !/Proyecto de resolución a consulta ciudadana/.test(title))) {//Circular
+        mother.URI = parentURI
+        //mother.circulartitle = circulartitle
+        //mother.ctitle = ctitle
         mother.title = title;
         mother.summary = summary.length ? summary : null
         mother.year = year
         results.push(mother);
-
-        child.URI.push(href);
+        child.URI = href;
         child.parentURI = parentURI
         child.title = title;
         child.summary = summary.length ? summary : null;
@@ -88,8 +99,8 @@ const handleTdWithOneMother = function({$, parentURI, year}) {
         child.inverseSort = totalEvents - order
         results.push(child);
 
-      } else {
-        child.URI.push(href)
+      }  else {
+        child.URI = href
         child.parentURI = parentURI
         child.title = title;
         child.summary = summary.length ? summary : null
@@ -103,7 +114,7 @@ const handleTdWithOneMother = function({$, parentURI, year}) {
     return results
 }
 
-const handleTdWithMoreThanOneMother = function({$, year}) {
+const handleTdWithMoreThanOneMother = function({$, year, ctitle}) {
   	let events = []
 	$('.doc .event:has(a)').each(function (index) {
       let event = $(this)
@@ -129,12 +140,13 @@ const handleTdWithMoreThanOneMother = function({$, year}) {
         commonEvent.year = year
       }
       cirlculars.push(commonEvent)
-      if (/^Proyecto/.test(title)) {
+      if (/^Proyecto/i.test(title)) {
         circularOrder = 2
         let match = /[“"](.+)["”]/.exec(summary)
         let ptitle = match && match[1].trim()
         ptitle = ptitle || title
-        parentURI = `https://www1.upme.gov.co/?title=${ptitle && ptitle.toLowerCase().replace(/\s+/g, '_')}`;
+        //ctitle && ctitle.toLowerCase().replace(/\s+/g, '_') || 
+        parentURI = `https://www1.upme.gov.co/?title=${ctitle && ctitle.toLowerCase().replace(/\s+/g, '_') || ptitle && ptitle.toLowerCase().replace(/\s+/g, '_') || summary && summary.toLowerCase().replace(/\s+/g, '_')}`;
 		summary = summary.replace(/([“"”:]|\.$|^\.)/g, '').trim()
         title = title.replace(/([“"”:]|\.$|^\.)/g, '').trim()
         results.push({ URI: parentURI, isMother: true, docname: title, title: summary || title, summary, year })
@@ -177,11 +189,7 @@ const handleTdWithMoreThanOneMother = function({$, year}) {
           	results.push(child)
         })
     })
-  	return handleCircularEvents(results)
-}
-
-function handleCircularEvents(results) {
-	return results
+  	return results
 }
 
 const formatDate = (date) => {
