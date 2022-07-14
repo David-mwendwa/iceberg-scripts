@@ -1,6 +1,6 @@
 function getDocumentTypeAndNumber({ tag, title }) {
   tag = tag === undefined ? null : tag.toLowerCase()
-  let map = {orta:'Orta',resoluciones:'Resoluciòn',decretos:'Decreto',acuerdos:'Acuerdo',circulares:'Circular',edictos:'Edicto',edicto:'Edicto',acta:'Acta',ley:'Ley',decreto_nacional:'decreto'}
+  let map = {orta:'Orta',otra:'Otra',estados:'Estado',resoluciones:'Resoluciòn',decretos:'Decreto',acuerdos:'Acuerdo',circulares:'Circular',edictos:'Edicto',edicto:'Edicto',acta:'Acta',ley:'Ley',decreto_nacional:'decreto'}
   let documentType = null
   let match = title && /^([\wóò]+).*N[o°]\D+(\d+)/.exec(title.trim()) || /^([\wóò]+)\D+(\d+)/.exec(title.trim())
   if (map[tag]) {
@@ -17,7 +17,7 @@ function getDocumentTypeAndNumber({ tag, title }) {
     doc.documentType = documentType;
     doc[`${documentType.toLowerCase()}Number`] = match && match[2] || null
   } else {
-  	 doc = { documentType: null, documentNumber: null }
+  	doc = { documentType: null, documentNumber: null }
   }
   return doc
 }
