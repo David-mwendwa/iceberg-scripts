@@ -2,6 +2,9 @@ async function fetchPage({canonicalURL, requestURL, requestOptions, headers}) {
     if (!requestOptions) requestOptions = {method: "GET", headers};
     if (!canonicalURL) canonicalURL = requestURL;
     if (!requestURL) requestURL = canonicalURL;
+  	if (requestURL.match(/^https/i)) {
+        requestOptions.agent = new https.Agent({rejectUnauthorized: false, keepAlive: true});
+    }
     return await fetchWithCookies(requestURL, requestOptions)
         .then(response => {
             return {
@@ -12,6 +15,7 @@ async function fetchPage({canonicalURL, requestURL, requestOptions, headers}) {
         });
 }
 
+// PUPPETEER THROWING AN ERROR!!!
 async function puppeteerFetch({canonicalURL, headers}) {
   	let match = /page=(.+)/.exec(canonicalURL)
     let pageNo = match && parseInt(match[1])
@@ -28,14 +32,14 @@ async function puppeteerFetch({canonicalURL, headers}) {
         while (pageNo > numOfClicks) {
             await page.waitForSelector(`td[id="pagingWPQ2next"] a`);
             await page.click(`td[id="pagingWPQ2next"] a`);
-            await page.waitForTimeout(5000);
+            await page.waitForTimeout(6000);
             numOfClicks++;
         }
     }
   	let html = await page.evaluate(() => document.documentElement.outerHTML);
 	const $ = cheerio.load(html, {decodeEntities: false});
     $('base, script, iframe').remove();	
-    $('td[id="pagingWPQ2next"]').append(`<a style='margin: 5px;' class='next-page' href='${canonicalURL.replace(/page=\d+/, `page=${pageNo+1}`)}'>NextPage: ${pageNo+1}</a>`);
+   	$('td[id="pagingWPQ2next"]').append(`<a style='margin: 5px;' class='next-page' href='${canonicalURL.replace(/page=\d+/, `page=${pageNo+1}`)}'>NextPage: ${pageNo+1}</a>`);
   	html = $('#ctl00_PlaceHolderMain_WikiField').html();
     return simpleResponse({
             canonicalURL,
@@ -44,22 +48,26 @@ async function puppeteerFetch({canonicalURL, headers}) {
         });
 }
 
-async function _puppeteerFetchContent({canonicalURL, headers}) {
-    const page = await puppeteerManager.newPage();
-    await page.goto(canonicalURL, {
-        waitFor: "networkidle0",
-        timeout: 30000
-    }).catch(e => console.error(`Puppeteer still loading page ${canonicalURL}`));
-    let html = await page.evaluate(() => document.documentElement.outerHTML);
-    const $ = cheerio.load(html, {decodeEntities: false});
-    $('base, script, iframe').remove();
-  	html = $.html();
-    return simpleResponse({
-        canonicalURL,
-        mimeType: "text/html",
-        responseBody: html,
-    });
-}
+const getContent = async function ({argument, canonicalURL, headers}) {
+    let customHeaders = {
+        "DNT": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1",
+        "sec-ch-ua": "\".Not/A)Brand\";v=\"99\", \"Google Chrome\";v=\"103\", \"Chromium\";v=\"103\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "Accept-Encoding": "gzip, deflate, br"
+    };
+    let _headers = Object.assign(customHeaders, headers);
+    let method = "GET";
+    let requestOptions = {method, headers: _headers};
+    let requestURL = canonicalURL;
+    let responsePage = await fetchPage({canonicalURL, requestURL, requestOptions});
+    return responsePage;
+};
 
 async function fetchURL({canonicalURL, headers}) {
     if (/https?:.*https?:/i.test(canonicalURL)) {
@@ -72,9 +80,9 @@ async function fetchURL({canonicalURL, headers}) {
         return [await puppeteerFetch({canonicalURL, headers})]
       
     } else if (/[dp][od][cf]x?/i.test(canonicalURL)) {
-      	return [await _puppeteerFetchContent({canonicalURL, headers})]
+      	return [await getContent({canonicalURL, headers})]
       
     } else {
-        return defaultFetchURL({canonicalURL, headers});
+        return [await fetchPage({canonicalURL, headers})];
     }
 }
