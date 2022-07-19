@@ -86,3 +86,33 @@ async function fetchURL({canonicalURL, headers}) {
         return [await fetchPage({canonicalURL, headers})];
     }
 }
+
+//https://cofemersimir.gob.mx/portales/resumen/53966
+
+function getSeeds() {
+    let seeds = []
+    let start = moment();
+    let stop = moment().subtract(1, 'months');
+
+    //let start = moment("2022-03-01");
+    //let stop = moment("2022-04-27");
+
+    if (start.isAfter(stop)) [start, stop] = [stop, start];
+    
+    let yearFrom = moment(start).year()
+    let yearTo = moment(stop).year()
+    let range = (yearTo - yearFrom) % 2 === 0 ? 2 : 1
+    for (let i = yearFrom; i < yearTo; i+=range) { 
+        let startYear = i
+        let stopYear = i + range
+
+        start = moment(start.toString().replace(/(19|20)\d{2}/, startYear));
+        stop = moment(stop.toString().replace(/(19|20)\d{2}/, stopYear));
+
+        let seed = `http://www.cofemersimir.gob.mx/portales/?from=${start.format("YYYY-MM-DD")}&to=${stop.format("YYYY-MM-DD")}&page=1`
+        console.log(`seed: ${seed}`)
+        seeds.push(seed)
+    }
+    
+    return seeds
+}
