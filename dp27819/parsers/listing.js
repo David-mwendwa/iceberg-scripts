@@ -1,34 +1,41 @@
 async function parsePage({ URL, responseBody, html }) {
-  	let results = []
-    let doc = {URI: [URL], URL}
-    let json = JSON.parse(responseBody.content);
-    let pdfURL = json && json.files && json.files[0] && json.files[0].filePath || null
-    doc.URI.push(pdfURL)
-    let publishDateOriginal = json.startingDate
-    doc.publishDateOriginal = publishDateOriginal
-    doc.publishDate = formatDate(publishDateOriginal)
-    
-    let dateOriginal = json.modifiedDate
-    doc.dateOriginal = dateOriginal
-    doc.date = formatDate(dateOriginal)
-  	doc.year = moment(doc.date).year() || null
-  	let title = json.name
-    doc.title = title
-    doc.summary = sentenceCase(json.metaDescription)
-  	let tag = json.labels[0].name
-    tag = !/^\d{4}$/.test(tag.trim()) ? tag : json.labels[1].name
-    doc.tag = tag
-  	let match = /www\.(\w+)/.exec(URL) 
-  	let key = match && match[1]
-    doc.municipio = key ? getMunicipio(key) : null
-  	
-  	let obj = getDocumentTypeAndNumber({tag, title})
-    
-  	if (/\.[pd][do][fc][x]?/i.test(pdfURL)) {
-  		results.push(Object.assign(doc, obj));
-    }
-    return results;
+  	console.log(`CURRENT_URL: ${URL}`)
+  	try {
+        let results = []
+        let doc = {URI: [URL], URL}
+        let json = JSON.parse(responseBody.content);
+        let pdfURL = json && json.files && json.files[0] && json.files[0].filePath || null
+        doc.URI.push(pdfURL)
+        let publishDateOriginal = json.startingDate
+        doc.publishDateOriginal = publishDateOriginal
+        doc.publishDate = formatDate(publishDateOriginal)
 
+        let dateOriginal = json.modifiedDate
+        doc.dateOriginal = dateOriginal
+        doc.date = formatDate(dateOriginal)
+        doc.year = moment(doc.date).year() || null
+        let title = sentenceCase(json.name)
+        title = title.replace(/nº/, 'Nº').replace(/no\./, 'No.').replace(/\bno\b/, 'No')
+        title = title
+        doc.title = title.replace(/\w+\s+\d{1,2}\s+\d{4}\b\s+/i, '').replace(/\w+\s+\d{1,2}\s+(?:del?\s+)?\d{4}\b\s+/i, '').replace(/\bdel\D+\d{2}\D+\d{4}\b/i, '').replace(/\bdel?\D+\d{4}\s+/i, '').replace(/\bde\s+\d{4}/i, '').trim()
+        doc.summary = sentenceCase(json.metaDescription)
+        let tag = json.labels[0] && json.labels[0].name || null
+        tag = tag && !/^\d{4}$/.test(tag.trim()) ? tag : json.labels[1] && json.labels[1].name || null
+        doc.tag = tag
+        let match = /www\.(\w+)/.exec(URL) 
+        let key = match && match[1]
+        doc.municipio = key ? getMunicipio(key) : null
+        doc['municipio lowercase'] = titleCase(doc.municipio)
+
+        let obj = getDocumentTypeAndNumber({tag, title})
+
+        if (/\.[pd][do][fc][x]?/i.test(pdfURL)) {
+            results.push(Object.assign(doc, obj));
+        }
+        return results;
+    } catch (err) {
+    	throw(`Error: ${err}`)
+    }
 }
 
 function getMunicipio(key) {
@@ -37,7 +44,7 @@ function getMunicipio(key) {
 } 
 
 function getDocumentTypeAndNumber({ tag, title }) {
-  tag = tag === undefined ? null : tag.trim().replace(/\s.+/g, '').toLowerCase()
+  tag = tag === undefined ? null : tag && tag.trim().replace(/\s.+/g, '').toLowerCase()
   let map = {cobro:'Aviso',codigos:'codigo',calendario:'Calendario',convocatorias:'Convocatoria',certificaciones:'Certificación',avoca:'Avoca',auto:'Auto',notificación:'Notificación',orta:'Orta',otra:'Otra',estados:'Estado',resoluciones:'Resolución',decretos:'Decreto',acuerdos:'Acuerdo',circulares:'Circular',edictos:'Edicto',edicto:'Edicto',acta:'Acta',ley:'Ley',decreto_nacional:'decreto'}
   let documentType = null
   let match = title && /^([\wóò]+).*N[o°]\D+(\d+)/.exec(title.trim()) || /^([\wóò]+)\D+(\d+)/.exec(title.trim())
@@ -71,8 +78,16 @@ const formatDate = (date) => {
   return d && d.isValid ? d.format('YYYY-MM-DD') : null;
 }
 
+function titleCase(str) {
+   var splitStr = str && str.toLowerCase().split(' ');
+   for (var i = 0; i < splitStr.length; i++) {
+       splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);     
+   }
+   return splitStr.join(' ').replace(/\bde/i, 'de'); 
+}
+
 const sentenceCase = (input) => {
-  input = input === undefined ? null : input.trim().replace(/(^["]|["]$)/g, '');
+  input = input === undefined ? null : input && input.trim().replace(/(^["]|["]$)/g, '');
   return (
     input && input.toString().toLowerCase().replace(/(^|[.?!] *)([a-z])/g,
         (match, separator, char) => separator + char.toUpperCase()
