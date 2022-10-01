@@ -27,32 +27,38 @@ const home = async function ({argument, canonicalURL, headers}) {
 
 const searchByDates = async function ({from, to, page = 1, canonicalURL, headers}) {
   	const timestamp = new Date().getTime()
-  	setSharedVariable('last-search', from+"-"+to);
+    let dFrom = moment(from).format('DD')
+    let mFrom = moment(from).format('MM')
+    let yFrom = moment(from).format('YYYY')
+    let dTo = moment(to).format('DD')
+    let mTo = moment(to).format('MM')
+    let yTo = moment(to).format('YYYY')
     let customHeaders = {"DNT":"1","Referer":"https://juliapesquisa.trf5.jus.br/julia-pesquisa/","Sec-Fetch-Dest":"empty","Sec-Fetch-Mode":"cors","Sec-Fetch-Site":"same-origin","X-Requested-With":"XMLHttpRequest","sec-ch-ua":"\".Not/A)Brand\";v=\"99\", \"Google Chrome\";v=\"103\", \"Chromium\";v=\"103\"","sec-ch-ua-mobile":"?0","sec-ch-ua-platform":"\"Windows\"","Accept-Encoding":"gzip, deflate, br"};
     let _headers = Object.assign(customHeaders, headers);
     let method = "GET";
     let requestOptions = {method, headers: _headers};
-  	let requestURL = encodeURI(`https://juliapesquisa.trf5.jus.br/julia-pesquisa/api/documentos:dt?draw=${page}&columns[0][data]=codigoDocumento&columns[0][name]=&columns[0][searchable]=true&columns[0][orderable]=false&columns[0][search][value]=&columns[0][search][regex]=false&start=0&length=10&search[value]=&search[regex]=false&pesquisaLivre=&numeroProcesso=&orgaoJulgador=&relator=&dataIni=${from.format('DD/MM/YYYY')}&dataFim=${to.format('DD/MM/YYYY')}&_=${timestamp}`)
+  	let requestURL = `https://juliapesquisa.trf5.jus.br/julia-pesquisa/api/documentos:dt?draw=1&columns%5B0%5D%5Bdata%5D=codigoDocumento&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&start=0&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&pesquisaLivre=&numeroProcesso=&orgaoJulgador=&relator=&dataIni=${dFrom}%2F${mFrom}%2F${yFrom}&dataFim=${dTo}%2F${mTo}%2F${yTo}&_=${timestamp}`;
+	//let requestURL = encodeURI(`https://juliapesquisa.trf5.jus.br/julia-pesquisa/api/documentos:dt?draw=${page}&columns[0][data]=codigoDocumento&columns[0][name]=&columns[0][searchable]=true&columns[0][orderable]=false&columns[0][search][value]=&columns[0][search][regex]=false&start=0&length=10&search[value]=&search[regex]=false&pesquisaLivre=&numeroProcesso=&orgaoJulgador=&relator=&dataIni=${from.format('DD/MM/YYYY')}&dataFim=${to.format('DD/MM/YYYY')}&_=${timestamp}`)
     let responsePage = await fetchPage({canonicalURL, requestURL, requestOptions});
-  	//throw(JSON.stringify({from, to, page, requestURL, timestamp}, null, 4))
-    return responsePage;
+  	return responsePage;
 };
 
 const pagination = async function ({from, to, page, canonicalURL, headers}) {
   	const timestamp = new Date().getTime()
-  	if(page === 1){
-    	let lastDatesSearched = getSharedVariable('last-search');
-      	let currentDateRange = from+"-"+to;
-  		if(lastDatesSearched !== currentDateRange){
-        	await searchByDates({from, to, page: 1, canonicalURL, headers});
-        }
-    }
+  	let dFrom = moment(from).format('DD')
+    let mFrom = moment(from).format('MM')
+    let yFrom = moment(from).format('YYYY')
+    let dTo = moment(to).format('DD')
+    let mTo = moment(to).format('MM')
+    let yTo = moment(to).format('YYYY')
+    //throw(JSON.stringify({dFrom, mFrom, yFrom, dTo, mTo, yTo}, null, 4))
     let customHeaders = {"DNT":"1","Referer":"https://juliapesquisa.trf5.jus.br/julia-pesquisa/","Sec-Fetch-Dest":"empty","Sec-Fetch-Mode":"cors","Sec-Fetch-Site":"same-origin","X-Requested-With":"XMLHttpRequest","sec-ch-ua":"\".Not/A)Brand\";v=\"99\", \"Google Chrome\";v=\"103\", \"Chromium\";v=\"103\"","sec-ch-ua-mobile":"?0","sec-ch-ua-platform":"\"Windows\"","Accept-Encoding":"gzip, deflate, br"};
     let _headers = Object.assign(customHeaders, headers);
     let method = "GET";
     let requestOptions = {method, headers: _headers};
-  	let requestURL = encodeURI(`https://juliapesquisa.trf5.jus.br/julia-pesquisa/api/documentos:dt?draw=${page}&columns[0][data]=codigoDocumento&columns[0][name]=&columns[0][searchable]=true&columns[0][orderable]=false&columns[0][search][value]=&columns[0][search][regex]=false&start=0&length=10&search[value]=&search[regex]=false&pesquisaLivre=&numeroProcesso=&orgaoJulgador=&relator=&dataIni=${from.format('DD/MM/YYYY')}&dataFim=${to.format('DD/MM/YYYY')}&_=${timestamp}`)
-    let responsePage = await fetchPage({canonicalURL, requestURL, requestOptions});
+  	let start = (+page - 1) * 10
+  	let requestURL = `https://juliapesquisa.trf5.jus.br/julia-pesquisa/api/documentos:dt?draw=${page}&columns%5B0%5D%5Bdata%5D=codigoDocumento&columns%5B0%5D%5Bname%5D=&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=false&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&start=${start}&length=10&search%5Bvalue%5D=&search%5Bregex%5D=false&pesquisaLivre=&numeroProcesso=&orgaoJulgador=&relator=&dataIni=${dFrom}%2F${mFrom}%2F${yFrom}&dataFim=${dTo}%2F${mTo}%2F${yTo}&_=${timestamp}`;
+	let responsePage = await fetchPage({canonicalURL, requestURL, requestOptions});
     return responsePage;
 };
 
@@ -133,11 +139,15 @@ const getMetadata = async function ({processo, canonicalURL, headers}) {
     let requestURL = 'https://pje.trf5.jus.br/pjeconsulta/ConsultaPublica/listView.seam;jsessionid=ODopYpvYrnfPyIeMaoDcl7Xv.node08';
     let responsePage = await fetchPage({canonicalURL, requestURL, requestOptions});
   	await transformXMLtoHTML({canonicalURL, responsePage})
+  	//return [responsePage]
   	let html = await responsePage.response.text();
     let $ = cheerio.load(html);
   	let href = $('#jp_url').attr('href')
-  	let responses = await getJudicialProcessListing_pageOne({processo, canonicalURL:href, headers})
-  	return [responsePage, ...responses]
+  	let responses = href && await getJudicialProcessListing_pageOne({processo, canonicalURL:href, headers})
+    //throw(JSON.stringify({captchaResult, href, responses: responses.length}, null, 4))
+  	if (responses) {
+  		return [responsePage, ...responses]
+    } else return [responsePage]
 
 };
 
@@ -178,7 +188,7 @@ const getJudicialProcessListing_pageOne = async function ({processo, canonicalUR
     let page = +canonicalURL.split('page=').pop()
     let totalPages = Math.ceil(numOfDocuments / 15) || pages
     for (let i = 2; i <= totalPages; i++) {
-      canonicalURL = canonicalURL.replace(/&page=[0-9]{1,3}/, `&page=${i}`);
+      canonicalURL = canonicalURL && canonicalURL.replace(/&page=[0-9]{1,3}/, `&page=${i}`);
       let responsePage = await getJudicialProcessListing_pagination({page: i, canonicalURL, headers})
       await parseViewState({ responsePage });
       await updateHrefs({ responsePage })
