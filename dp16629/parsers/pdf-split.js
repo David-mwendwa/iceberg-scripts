@@ -17,6 +17,12 @@ async function parsePage({URL, responseBody, html}) {
       let publicação = match && match[1]
       match = /Ediç\D+?([\d\/]+)/.exec(textString)
       let ediçao = match && match[1]
+      if (/novogerenciador/.test(URL)) {
+      	match = /Acór\D+([\d.\/]+)/i.exec(textString)  
+        ediçao = match && match[1]
+        match = /\D+?(\d{1,2}(?: del?) \w+(?: del?) \d{4})/i.exec(textString)
+        publicação = match && match[1]
+      }
       match = /SUMÁRIO(.+[\.]{30}\s?\d+)/i.exec(textString)
       let summaryText = match && match[1]
       //results.push({summaryText})
