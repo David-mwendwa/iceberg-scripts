@@ -73,6 +73,5 @@ const parseRemoteUrl = async (urlToParse, parserId = "A06rg5f9z6chza8") => {
               }
             }`);
     }
-
     return parserRes && parserRes.node && parserRes.node.jsonOutputFor;//returns array, filter as necessary
 };
